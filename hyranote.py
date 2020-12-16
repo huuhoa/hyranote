@@ -11,6 +11,45 @@ def get_current_week():
     return week_num, int((my_date.month+2) / 3)
 
 
+def _wrap_with_color_code(code: str):
+    def inner(self, text, bold=False):
+        c = code
+        if bold:
+            c = "1;%s" % c
+        return "\033[%sm%s\033[0m" % (c, text)
+
+    return inner
+
+
+class Logging(object):
+    def __init__(self, level: int):
+        self.log_level = level
+
+    LOG_INFO = 1
+    LOG_WARN = 2
+    LOG_ERROR = 3
+
+    red = _wrap_with_color_code('31')
+    green = _wrap_with_color_code('32')
+    yellow = _wrap_with_color_code('33')
+    blue = _wrap_with_color_code('34')
+    magenta = _wrap_with_color_code('35')
+    cyan = _wrap_with_color_code('36')
+    white = _wrap_with_color_code('37')
+
+    def error(self, msg, *args, **kwargs):
+        if self.log_level <= self.LOG_ERROR:
+            print(self.red("[ERROR]"), msg, *args, **kwargs)
+
+    def warn(self, msg, *args, **kwargs):
+        if self.log_level <= self.LOG_WARN:
+            print(self.yellow("[WARN]"), msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        if self.log_level <= self.LOG_INFO:
+            print(self.green("[INFO]"), msg, *args, **kwargs)
+
+
 class Generator(object):
     def __init__(self, data, configs):
         self.data = data
@@ -21,7 +60,9 @@ class Generator(object):
         self.output_dir = configs.get('output_dir')
         self.prefix = configs.get('prefix')
         self.author = configs.get('author')
-        print(self.weeks, self.quarter)
+        self.logger = Logging(configs.get('logging', Logging.LOG_WARN))
+
+        self.logger.info(self.weeks, self.quarter)
 
     def print_child_node(self, node, fp, node_level=1):
         max_heading_level = 4
@@ -34,13 +75,13 @@ class Generator(object):
         if m is not None:
             week_num = m.group(0)
             if week_num not in self.weeks:
-                print('skip', title)
+                self.logger.info('skip', title)
                 return
         m = re.search(r'^Q\d', title)
         if m is not None:
             week_num = m.group(0)
             if week_num != self.quarter:
-                print('skip quarter', title)
+                self.logger.info('skip quarter', title)
                 return
         note = node.get('note', {}).get('text', '')
         note = re.sub('<[^>]*>', '', note)
@@ -84,9 +125,10 @@ def main():
     parser.add_argument('output', nargs='?', type=str, help='Output folder', default='.')
     parser.add_argument('--prefix', type=str, help='Prefix value for output file name and title', default='')
     parser.add_argument('--author', type=str, help='Render author field', default='')
+    parser.add_argument('--verbose', type=int, help='Logging level: 1-INFO, 2-WARN, 3-ERROR', default=Logging.LOG_WARN)
     args = parser.parse_args()
 
-    input_dir =  os.path.expanduser(args.input)
+    input_dir = os.path.expanduser(args.input)
     with open(os.path.join(input_dir, 'contents.xml'), 'rb') as fp:
         data = plistlib.load(fp)
 
@@ -104,6 +146,7 @@ def main():
                                   'output_dir': args.output,
                                   'prefix': args.prefix,
                                   'author': args.author,
+                                  'logging': args.verbose,
                               })
         generator.generate()
 
