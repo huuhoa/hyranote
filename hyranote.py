@@ -114,6 +114,7 @@ class Generator(object):
 {my_date.strftime('%Y-%m-%d')}
 :toc:
 :toclevels: 4
+:numbered:
 ''')
             mn = self.data['mainNode']
             self.print_child_node(mn, fp)
@@ -126,15 +127,19 @@ def main():
     parser.add_argument('--prefix', type=str, help='Prefix value for output file name and title', default='')
     parser.add_argument('--author', type=str, help='Render author field', default='')
     parser.add_argument('--verbose', type=int, help='Logging level: 1-INFO, 2-WARN, 3-ERROR', default=Logging.LOG_WARN)
+    parser.add_argument('--dump', type=bool, help='Dump content of mindnode file to json and exit', default=False)
     args = parser.parse_args()
 
     input_dir = os.path.expanduser(args.input)
     with open(os.path.join(input_dir, 'contents.xml'), 'rb') as fp:
         data = plistlib.load(fp)
 
-    # import json
-    # with open('contents.json', 'wt') as fh:
-    #     json.dump(data, fh, indent=2, sort_keys=True)
+    if args.dump:
+        import json
+        with open('contents.json', 'wt') as fh:
+            json.dump(data, fh, indent=2, sort_keys=True)
+        exit(1)
+
     canvas = data['canvas']
     mind_maps = canvas['mindMaps']
     for main_node in mind_maps:
