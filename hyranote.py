@@ -133,12 +133,12 @@ class Generator(object):
         title = title.strip()
         if not title:
             return f'''+
-image::{image_content}[]
+image::{image_content}[pdfwidth=85%]
 '''
         else:
             return f'''+
 .{title.strip()}
-image::{image_content}[{title.strip()}]
+image::{image_content}[alt={title.strip()}, pdfwidth=85%]
 '''
 
     def generate(self):
