@@ -69,8 +69,7 @@ class Generator(object):
 
         self.logger.info(self.weeks, self.quarter)
 
-    def print_child_node(self, node, fp, node_level=1):
-
+    def _print_child_node(self, node, fp, node_level=1):
         title = node.get('title', {}).get('text', '')
         title = re.sub('<[^>]*>', '', title)
         if title.startswith('[S]'):
@@ -90,15 +89,14 @@ class Generator(object):
                 return
 
         if node_level > 1:
-            content = self.render_node_content(node, node_level, title)
+            content = self._render_node_content(node, node_level, title)
             fp.write(content)
 
-        subnodes = node.get('subnodes')
-        if subnodes is not None:
-            for x in subnodes:
-                self.print_child_node(x, fp, node_level+1)
+        subnodes = node.get('subnodes', [])
+        for x in subnodes:
+            self._print_child_node(x, fp, node_level+1)
 
-    def render_node_content(self, node, node_level, title):
+    def _render_node_content(self, node, node_level, title):
         note = node.get('note', {}).get('text', '')
         note = re.sub('<[^>]*>', '', note)
         if len(note) > 0:
@@ -107,9 +105,9 @@ class Generator(object):
             content = f"\n{'=' * node_level} {title}\n\n{note}"
             return content
 
-        attachment_name = self.get_attachment_name(node)
+        attachment_name = self._get_attachment_name(node)
         if attachment_name:
-            content = self.render_image_block(attachment_name, title)
+            content = self._render_image_block(attachment_name, title)
             return content
 
         task_state = node.get('task', {}).get('state', 0)
@@ -121,7 +119,7 @@ class Generator(object):
         content = f"{bullet_level} {title}\n{note}"
         return content
 
-    def get_attachment_name(self, node):
+    def _get_attachment_name(self, node):
         attachment_file_name = node.get('attachment', {}).get('fileName', '')
         default_name = ''
         if attachment_file_name:
@@ -130,6 +128,18 @@ class Generator(object):
                 return attachment_file_name
 
         return default_name
+
+    def _render_image_block(self, image_content, title):
+        title = title.strip()
+        if not title:
+            return f'''+
+image::{image_content}[]
+'''
+        else:
+            return f'''+
+.{title.strip()}
+image::{image_content}[{title.strip()}]
+'''
 
     def generate(self):
         my_date = datetime.date.today()
@@ -145,19 +155,7 @@ class Generator(object):
 :numbered:
 ''')
             mn = self.data['mainNode']
-            self.print_child_node(mn, fp)
-
-    def render_image_block(self, image_content, title):
-        title = title.strip()
-        if not title:
-            return f'''+
-image::{image_content}[]
-'''
-        else:
-            return f'''+
-.{title.strip()}
-image::{image_content}[{title.strip()}]
-'''
+            self._print_child_node(mn, fp)
 
 
 def copy_resources(input_dir, dst):
