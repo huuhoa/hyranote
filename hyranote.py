@@ -163,26 +163,22 @@ def copy_resources(input_dir, dst):
     shutil.copytree(resources, dst, dirs_exist_ok=True)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('input', type=str, help='Input mindnode file')
-    parser.add_argument('output', nargs='?', type=str, help='Output folder', default='.')
-    parser.add_argument('--prefix', type=str, help='Prefix value for output file name and title', default='')
-    parser.add_argument('--author', type=str, help='Render author field', default='')
-    parser.add_argument('--verbose', type=int, help='Logging level: 1-INFO, 2-WARN, 3-ERROR', default=Logging.LOG_WARN)
-    parser.add_argument('--dump', type=bool, help='Dump content of mindnode file to json and exit', default=False)
-    args = parser.parse_args()
+def dump_contents(args):
+    import json
 
     input_dir = os.path.expanduser(args.input)
-    copy_resources(input_dir, './images')
     with open(os.path.join(input_dir, 'contents.xml'), 'rb') as fp:
         data = plistlib.load(fp)
 
-    if args.dump:
-        import json
-        with open('contents.json', 'wt') as fh:
-            json.dump(data, fh, indent=2, sort_keys=True)
-        exit(1)
+    with open('contents.json', 'wt') as fh:
+        json.dump(data, fh, indent=2, sort_keys=True)
+
+
+def generate_contents(args):
+    input_dir = os.path.expanduser(args.input)
+    copy_resources(input_dir, os.path.join(args.output, 'images'))
+    with open(os.path.join(input_dir, 'contents.xml'), 'rb') as fp:
+        data = plistlib.load(fp)
 
     canvas = data['canvas']
     mind_maps = canvas['mindMaps']
@@ -198,6 +194,25 @@ def main():
                                   'logging': args.verbose,
                               })
         generator.generate()
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Hyranote to generate weekly notes for you')
+    dump_command = parser.add_subparsers(title="Dump contents")
+    d_parser = dump_command.add_parser("dump", help='Dump content of MindNode file to json and exit')
+    d_parser.add_argument('input', type=str, help='Input MindNode file')
+    d_parser.set_defaults(func=dump_contents)
+
+    g_parser = dump_command.add_parser('generate', aliases=['g', 'gen'], help='Generate weekly notes from MindNode file')
+    g_parser.add_argument('input', type=str, help='Input MindNode file')
+    g_parser.add_argument('output', nargs='?', type=str, help='Output folder', default='.')
+    g_parser.add_argument('--prefix', type=str, help='Prefix value for output file name and title', default='')
+    g_parser.add_argument('--author', type=str, help='Render author field', default='')
+    g_parser.add_argument('--verbose', type=int, help='Logging level: 1-INFO, 2-WARN, 3-ERROR', default=Logging.LOG_WARN)
+    g_parser.set_defaults(func=generate_contents)
+
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == '__main__':
