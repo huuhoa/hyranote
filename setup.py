@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(name='hyranote',
-      version='0.1.0',
+      version='0.2.0',
       description='Transform mindnode file to weekly notes',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -13,7 +13,6 @@ setup(name='hyranote',
       author='Huu Hoa NGUYEN',
       author_email='huuhoa@gmail.com',
       license='MIT',
-      # packages=['hyranote'],
       install_requires=[
       ],
       classifiers=[
