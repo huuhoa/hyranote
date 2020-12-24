@@ -14,6 +14,7 @@ setup(name='hyranote',
       author_email='huuhoa@gmail.com',
       license='MIT',
       install_requires=[
+          'beautifulsoup4==4.9.1',
       ],
       classifiers=[
           'Programming Language :: Python :: 3',
@@ -22,6 +23,6 @@ setup(name='hyranote',
       ],
       entry_points={
           'console_scripts': [
-              'hyranote = hyranote:main'
+              'hyranote = hyranote.cli:main'
           ]
       })
