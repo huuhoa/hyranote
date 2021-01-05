@@ -9,7 +9,9 @@ from hyranote.hyranote import Generator
 def get_current_week():
     my_date = datetime.date.today()
     year, week_num, day_of_week = my_date.isocalendar()
-    return week_num, int((my_date.month+2) / 3)
+    prev_date = my_date - datetime.timedelta(days=7)
+    _, prev_week, _ = prev_date.isocalendar()
+    return prev_week, week_num, int((my_date.month+2) / 3)
 
 
 def copy_resources(input_dir, dst):
@@ -26,9 +28,10 @@ def generate_contents(args):
     canvas = data['canvas']
     mind_maps = canvas['mindMaps']
     for main_node in mind_maps:
-        week_num, quarter = get_current_week()
+        prev_week, week_num, quarter = get_current_week()
         generator = Generator(main_node,
                               {
+                                  'previous_week': prev_week,
                                   'current_week': week_num,
                                   'current_quarter': quarter,
                                   'output_dir': args.output,

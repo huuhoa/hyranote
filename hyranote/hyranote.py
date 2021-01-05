@@ -12,12 +12,12 @@ from hyranote.logging import Logging
 class Generator(object):
     max_heading_level = 4
     image_suffixes = ['.png', '.jpg']
-    retain_weeks = 2
 
     def __init__(self, data, configs):
         self.data = data
         self.current_week = configs.get('current_week')
-        self.weeks = ['W%d' % (self.current_week - x) for x in range(self.retain_weeks)]
+        prev_week = configs.get('previous_week')
+        self.weeks = [f'W{prev_week}', f'W{self.current_week}']
         self.quarter = f'Q{configs.get("current_quarter")}'
         self.output_dir = configs.get('output_dir')
         self.prefix = configs.get('prefix')
@@ -31,7 +31,7 @@ class Generator(object):
         if not text:
             return ''
 
-        doc = BeautifulSoup(text, features='html.parser')
+        doc = BeautifulSoup(f'<div>{text}</div>', features='html.parser')
         value = self.visitor.visit(doc.find())
         value = value.strip()
         return value
