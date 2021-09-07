@@ -20,7 +20,14 @@ class BaseGenerator(object):
         self.logger = Logging(configs.get('logging', Logging.LOG_WARN))
         self.visitor = AsciidocVisitor(self.logger)
 
-    def _filter_text(self, text: str) -> str:
+    def _visit_node(self, node, fp, node_level=1):
+        pass
+
+    def _convert_to_markup(self, text: str) -> str:
+        """
+        Parse html content of MindNode text such as node's titles, node's notes
+        then convert to markup content, currently only support asciidoc markup
+        """
         if not text:
             return ''
 
@@ -29,12 +36,16 @@ class BaseGenerator(object):
         value = value.strip()
         return value
 
-    def _visit_node(self, node, fp, node_level=1):
-        pass
-
-    def _render_node_content(self, node, node_level, title):
+    def _render_node_content(self, node: dict, node_level: int, title: str) -> str:
+        """
+        Render node's content to asciidoc markup
+        + render node's title as heading if @ref.node_level <= self.max_heading_level
+          otherwise it will be rendered as bullet point
+        + support render image content
+        + support render task type content
+        """
         note = node.get('note', {}).get('text', '')
-        note = self._filter_text(note)
+        note = self._convert_to_markup(note)
         if len(note) > 0:
             note = note + '\n\n'
         if node_level <= self.max_heading_level:
@@ -120,7 +131,7 @@ class Generator(BaseGenerator):
 
     def _visit_node(self, node, fp, node_level=1):
         title = node.get('title', {}).get('text', '')
-        title = self._filter_text(title)
+        title = self._convert_to_markup(title)
         if title.startswith('[S]'):
             # Skip this node and its children
             return
@@ -170,7 +181,7 @@ class SimpleGenerator(BaseGenerator):
 
     def _visit_node(self, node, fp, node_level=1):
         title = node.get('title', {}).get('text', '')
-        title = self._filter_text(title)
+        title = self._convert_to_markup(title)
         if title.startswith('[S]'):
             # Skip this node and its children
             return
@@ -191,6 +202,6 @@ class SimpleGenerator(BaseGenerator):
     def _get_output_title(self) -> str:
         mn = self.data['mainNode']
         title = mn.get('title', {}).get('text', '')
-        title = self._filter_text(title)
+        title = self._convert_to_markup(title)
         return title
 

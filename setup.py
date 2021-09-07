@@ -12,7 +12,7 @@ setup(name='hyranote',
       url='http://github.com/huuhoa/hyranote',
       author='Huu Hoa NGUYEN',
       author_email='huuhoa@gmail.com',
-      license='MIT',
+      license='MIT License',
       install_requires=[
           'beautifulsoup4==4.9.1',
       ],
