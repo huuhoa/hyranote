@@ -1,5 +1,5 @@
 import argparse
-
+from hyranote.cmd_simple import simple_generate_contents
 from hyranote.cmd_dump import dump_contents
 from hyranote.cmd_generate import generate_contents
 from hyranote.logging import Logging
@@ -19,6 +19,13 @@ def main():
     g_parser.add_argument('--author', type=str, help='Render author field', default='')
     g_parser.add_argument('--verbose', type=int, help='Logging level: 1-INFO, 2-WARN, 3-ERROR', default=Logging.LOG_WARN)
     g_parser.set_defaults(func=generate_contents)
+
+    g_parser = dump_command.add_parser('simple', aliases=['s', 'sim'], help='Generate weekly notes from MindNode file in simplify format')
+    g_parser.add_argument('input', type=str, help='Input MindNode file')
+    g_parser.add_argument('output', nargs='?', type=str, help='Output folder', default='.')
+    g_parser.add_argument('--author', type=str, help='Render author field', default='')
+    g_parser.add_argument('--verbose', type=int, help='Logging level: 1-INFO, 2-WARN, 3-ERROR', default=Logging.LOG_WARN)
+    g_parser.set_defaults(func=simple_generate_contents)
 
     args = parser.parse_args()
     args.func(args)

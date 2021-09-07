@@ -1,8 +1,8 @@
 import datetime
 import os
 import plistlib
-import shutil
 
+from hyranote.hutil import copy_resources
 from hyranote.hyranote import Generator
 
 
@@ -12,11 +12,6 @@ def get_current_week():
     prev_date = my_date - datetime.timedelta(days=7)
     _, prev_week, _ = prev_date.isocalendar()
     return prev_week, week_num, int((my_date.month+2) / 3)
-
-
-def copy_resources(input_dir, dst):
-    resources = os.path.join(input_dir, 'resources')
-    shutil.copytree(resources, dst, dirs_exist_ok=True)
 
 
 def generate_contents(args):
